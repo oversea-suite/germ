@@ -1,6 +1,6 @@
 # Maintainer: oversea-suite
 pkgname=germ-git
-pkgver=r0.0000000
+pkgver=r5.aa9820d
 pkgrel=1
 pkgdesc="GEneral Resource Manager"
 arch=('any')
