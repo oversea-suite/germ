@@ -9,15 +9,15 @@ license=('LGPLv2.1')
 depends=('bash' 'python' 'probed')
 provides=('germ')
 conflicts=('germ')
-source=("git+https://github.com/oversea-suite/germ.git")
+source=("germ-source::git+https://github.com/oversea-suite/germ.git")
 sha256sums=('SKIP')
 
 pkgver() {
-    cd germ
+    cd germ-source
     printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
 }
 
 package() {
-    cd germ
+    cd germ-source
     install -Dm755 germ          "$pkgdir/usr/bin/germ"
 }
