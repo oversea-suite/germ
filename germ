@@ -1,0 +1,119 @@
+#!/usr/bin/env python3
+import os
+import importlib.util
+import sys
+import shlex
+import subprocess
+
+# config stuff
+EXAMPLE_CONFIG="""#!/bin/false
+# Example configuration.
+# To use GERM, please edit this file.
+
+# The following line disables GERM to tell you to edit this file:
+GERM_DISABLED=True
+
+# Options
+COMMANDS={
+  "local":"/var/lib/probed/getinfo.sh",
+  "remote":"bash -c 'exec 3<>/dev/tcp/example.com/555; cat <&3'" # for use with PROBEd
+  }
+"""
+
+os.makedirs(os.path.expanduser('~/.config/'), exist_ok=True)
+if not os.path.isfile(os.path.expanduser('~/.config/germ.conf.py')):
+  with open(os.path.expanduser('~/.config/germ.conf.py'), 'w') as f:
+    f.write(EXAMPLE_CONFIG)
+spec = importlib.util.spec_from_file_location("config", os.path.expanduser('~/.config/germ.conf.py'))
+config = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(config)
+if config.GERM_DISABLED:
+  print("Please edit ~/.config/germ.conf.py and retry.")
+  sys.exit(1)
+
+# parsing
+def parse(output):
+  d = {'proc_cpu': {}, 'proc_ram': {}}
+  for line in output.strip().splitlines():
+    key, _, val = line.partition(':')
+    if key.startswith('proc_cpu_'):
+      name, _, pct = val.partition(':')
+      d['proc_cpu'][name] = float(pct)
+    elif key.startswith('proc_ram_'):
+      name, _, pct = val.partition(':')
+      d['proc_ram'][name] = float(pct)
+    else:
+      d[key] = val
+  return d
+
+# runtime
+try:
+  args = shlex.split(config.COMMANDS[sys.argv[1]])
+  r    = subprocess.run(args, capture_output=True, text=True, check=True, timeout=10)
+except KeyError:
+  print(f"There is no config entry for {sys.argv[1]}")
+  sys.exit(1)
+except IndexError:
+  print(f"Please choose a command from ~/.config/germ.conf.py.")
+  sys.exit(1)
+except FileNotFoundError:
+  print(f"The command {args[0]} does not exist.")
+  sys.exit(1)
+except subprocess.CalledProcessError as e:
+  print(e.stderr)
+  sys.exit(e.returncode)
+except subprocess.TimeoutExpired:
+  print("Timed out.")
+  sys.exit(1)
+try:
+  if sys.argv[2]=="all":
+    print(r.stdout)
+  else:
+    try:
+      print(parse(r.stdout)[sys.argv[2]])
+    except KeyError:
+      print("""Invalid Key. Please choose from:
+- uptime_s
+- load_avg
+- cpu_temp_c
+- ram_total_kb
+- ram_used_kb
+- ram_avail_kb
+- swap_total_kb
+- swap_used_kb
+- disk_total_kb
+- disk_used_kb
+- cpu_pct
+- disk_read_kb_s
+- disk_write_kb_s
+- net_rx_kb_s
+- net_tx_kb_s
+or from
+- proc_cpu_1 to 5
+- proc_ram_1 to 5
+or all for all of them
+""")
+      sys.exit(1)
+except IndexError:
+  print("""Please choose from:
+- uptime_s
+- load_avg
+- cpu_temp_c
+- ram_total_kb
+- ram_used_kb
+- ram_avail_kb
+- swap_total_kb
+- swap_used_kb
+- disk_total_kb
+- disk_used_kb
+- cpu_pct
+- disk_read_kb_s
+- disk_write_kb_s
+- net_rx_kb_s
+- net_tx_kb_s
+or from
+- proc_cpu_1 to 5
+- proc_ram_1 to 5
+or all for all of them
+""")
+  sys.exit(1)
