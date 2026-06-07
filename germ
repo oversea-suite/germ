@@ -50,7 +50,7 @@ except KeyError:
     print(f"Please choose a command from ~/.config/germ.conf.py or the address to a server running PROBEd.")
     sys.exit(1)
   except:
-    print(f"There is no config entry for {sys.argv[1]}.")
+    print(f"There is no config entry for {sys.argv[1]}. Please choose a command from ~/.config/germ.conf.py or the address to a server running PROBEd.")
     sys.exit(1)
 except IndexError:
   print(f"Please choose a command from ~/.config/germ.conf.py or the address to a server running PROBEd.")
