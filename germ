@@ -33,17 +33,10 @@ if config.GERM_DISABLED:
 
 # parsing
 def parse(output):
-  d = {'proc_cpu': {}, 'proc_ram': {}}
+  d = {}
   for line in output.strip().splitlines():
     key, _, val = line.partition(':')
-    if key.startswith('proc_cpu_'):
-      name, _, pct = val.partition(':')
-      d['proc_cpu'][name] = float(pct)
-    elif key.startswith('proc_ram_'):
-      name, _, pct = val.partition(':')
-      d['proc_ram'][name] = float(pct)
-    else:
-      d[key] = val
+    d[key] = val
   return d
 
 # runtime
@@ -88,9 +81,8 @@ try:
 - disk_write_kb_s
 - net_rx_kb_s
 - net_tx_kb_s
-or from
-- proc_cpu_1 to 5
-- proc_ram_1 to 5
+- proc_cpu_1 to proc_cpu_5  (format: name:pct)
+- proc_ram_1 to proc_ram_5  (format: name:pct)
 or all for all of them
 """)
       sys.exit(1)
@@ -111,9 +103,8 @@ except IndexError:
 - disk_write_kb_s
 - net_rx_kb_s
 - net_tx_kb_s
-or from
-- proc_cpu_1 to 5
-- proc_ram_1 to 5
+- proc_cpu_1 to proc_cpu_5  (format: name:pct)
+- proc_ram_1 to proc_ram_5  (format: name:pct)
 or all for all of them
 """)
   sys.exit(1)
